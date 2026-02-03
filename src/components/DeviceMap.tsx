@@ -1,19 +1,16 @@
-import { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import { Icon, divIcon } from 'leaflet';
+import { useEffect, useRef, useState } from 'react';
+import L from 'leaflet';
 import { Device } from '@/types/device';
-import { DeviceIcon } from './DeviceIcon';
-import { StatusBadge } from './StatusBadge';
 import 'leaflet/dist/leaflet.css';
 
-// Fix for default marker icons in React-Leaflet
+// Fix for default marker icons
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 // @ts-ignore
-delete Icon.Default.prototype._getIconUrl;
-Icon.Default.mergeOptions({
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
@@ -25,21 +22,7 @@ interface DeviceMapProps {
   onSelectDevice: (device: Device) => void;
 }
 
-function MapController({ selectedDevice }: { selectedDevice: Device | null }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (selectedDevice) {
-      map.flyTo([selectedDevice.location.lat, selectedDevice.location.lng], 14, {
-        duration: 1,
-      });
-    }
-  }, [selectedDevice, map]);
-
-  return null;
-}
-
-function createCustomMarker(device: Device, isSelected: boolean) {
+function createCustomIcon(device: Device, isSelected: boolean): L.DivIcon {
   const statusColor =
     device.status === 'online'
       ? '#22c55e'
@@ -50,7 +33,7 @@ function createCustomMarker(device: Device, isSelected: boolean) {
   const bgColor = isSelected ? '#14b8a6' : '#1e293b';
   const ringColor = isSelected ? '#14b8a680' : 'transparent';
 
-  return divIcon({
+  return L.divIcon({
     className: 'custom-marker',
     html: `
       <div style="
@@ -104,92 +87,86 @@ export function DeviceMap({
   selectedDevice,
   onSelectDevice,
 }: DeviceMapProps) {
-  const center = selectedDevice
-    ? [selectedDevice.location.lat, selectedDevice.location.lng]
-    : [40.7128, -74.006];
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<Map<string, L.Marker>>(new Map());
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return;
+
+    const center: L.LatLngExpression = [40.7128, -74.006];
+    
+    mapInstanceRef.current = L.map(mapRef.current, {
+      center,
+      zoom: 12,
+      zoomControl: true,
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+    }).addTo(mapInstanceRef.current);
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update markers when devices change
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    // Clear old markers
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current.clear();
+
+    // Add new markers
+    devices.forEach((device) => {
+      const isSelected = selectedDevice?.id === device.id;
+      const icon = createCustomIcon(device, isSelected);
+
+      const marker = L.marker([device.location.lat, device.location.lng], { icon })
+        .addTo(map)
+        .bindPopup(`
+          <div style="min-width: 180px; padding: 4px;">
+            <h3 style="font-weight: 600; margin-bottom: 4px; color: #f8fafc;">${device.name}</h3>
+            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">
+              ${device.location.address || 'Location unknown'}
+            </p>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="
+                height: 8px;
+                width: 8px;
+                border-radius: 50%;
+                background: ${device.status === 'online' ? '#22c55e' : device.status === 'lost' ? '#ef4444' : '#6b7280'};
+              "></span>
+              <span style="font-size: 12px; text-transform: capitalize; color: #f8fafc;">${device.status}</span>
+            </div>
+          </div>
+        `);
+
+      marker.on('click', () => onSelectDevice(device));
+      markersRef.current.set(device.id, marker);
+    });
+  }, [devices, selectedDevice, onSelectDevice]);
+
+  // Fly to selected device
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !selectedDevice) return;
+
+    map.flyTo([selectedDevice.location.lat, selectedDevice.location.lng], 14, {
+      duration: 1,
+    });
+  }, [selectedDevice]);
 
   return (
-    <div className="w-full h-full rounded-xl overflow-hidden">
-      <style>{`
-        @keyframes ping {
-          75%, 100% {
-            transform: scale(1.5);
-            opacity: 0;
-          }
-        }
-        .leaflet-container {
-          background: hsl(222, 30%, 8%);
-        }
-        .leaflet-popup-content-wrapper {
-          background: hsl(222, 28%, 12%);
-          border: 1px solid hsl(222, 25%, 20%);
-          border-radius: 12px;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
-        .leaflet-popup-tip {
-          background: hsl(222, 28%, 12%);
-          border-color: hsl(222, 25%, 20%);
-        }
-        .leaflet-popup-content {
-          margin: 12px;
-          color: hsl(210, 40%, 96%);
-        }
-        .leaflet-control-zoom {
-          border: none !important;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-        }
-        .leaflet-control-zoom a {
-          background: hsl(222, 28%, 12%) !important;
-          color: hsl(210, 40%, 96%) !important;
-          border-color: hsl(222, 25%, 20%) !important;
-        }
-        .leaflet-control-zoom a:hover {
-          background: hsl(222, 25%, 18%) !important;
-        }
-      `}</style>
-      <MapContainer
-        center={center as [number, number]}
-        zoom={12}
-        style={{ height: '100%', width: '100%' }}
-        zoomControl={true}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        />
-        <MapController selectedDevice={selectedDevice} />
-        {devices.map((device) => (
-          <Marker
-            key={device.id}
-            position={[device.location.lat, device.location.lng]}
-            icon={createCustomMarker(device, selectedDevice?.id === device.id)}
-            eventHandlers={{
-              click: () => onSelectDevice(device),
-            }}
-          >
-            <Popup>
-              <div className="min-w-[180px]">
-                <h3 className="font-semibold mb-1">{device.name}</h3>
-                <p className="text-xs text-muted-foreground mb-2">
-                  {device.location.address}
-                </p>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`h-2 w-2 rounded-full ${
-                      device.status === 'online'
-                        ? 'bg-green-500'
-                        : device.status === 'lost'
-                        ? 'bg-red-500'
-                        : 'bg-gray-500'
-                    }`}
-                  />
-                  <span className="text-xs capitalize">{device.status}</span>
-                </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+    <div className="w-full h-full rounded-xl overflow-hidden device-map-container">
+      <div ref={mapRef} className="w-full h-full" />
     </div>
   );
 }
