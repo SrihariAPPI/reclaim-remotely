@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import {
   Volume2, MapPin, Lock, MessageSquare, ChevronUp, Bell, Navigation, Camera, ShieldAlert, ShieldCheck,
 } from 'lucide-react';
@@ -128,10 +128,18 @@ export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
       animate={{ y: 0, opacity: 1 }}
       className="absolute bottom-[140px] left-1/2 -translate-x-1/2 w-full max-w-lg px-4 z-[450]"
     >
-      <div className={cn(
-        'glass-card rounded-2xl overflow-hidden',
-        isLost && 'border-destructive/30 shadow-[0_0_30px_-8px_hsl(0_72%_55%/0.2)]'
-      )}>
+      <motion.div
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.2}
+        onDragEnd={(_: any, info: PanInfo) => {
+          if (info.offset.y > 50) setIsExpanded(false);
+        }}
+        className={cn(
+          'glass-card rounded-2xl overflow-hidden',
+          isLost && 'border-destructive/30 shadow-[0_0_30px_-8px_hsl(0_72%_55%/0.2)]'
+        )}
+      >
         {/* Header bar */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -239,7 +247,7 @@ export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
