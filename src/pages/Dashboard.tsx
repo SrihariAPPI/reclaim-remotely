@@ -47,6 +47,7 @@ export function Dashboard() {
         <DeviceActions
           device={effectiveSelected}
           onUpdateDevice={updateDevice}
+          onDeleteDevice={deleteDevice}
         />
 
         {/* Mobile drawer with header */}

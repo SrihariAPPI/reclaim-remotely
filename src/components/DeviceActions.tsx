@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import {
-  Volume2, MapPin, Lock, MessageSquare, ChevronUp, Bell, Navigation, Camera, ShieldAlert, ShieldCheck,
+  Volume2, MapPin, Lock, MessageSquare, ChevronUp, Bell, Navigation, Camera, ShieldAlert, ShieldCheck, Trash2,
 } from 'lucide-react';
 import { Device } from '@/types/device';
 import { Switch } from '@/components/ui/switch';
@@ -17,9 +17,10 @@ import { playBeep } from '@/lib/sounds';
 interface DeviceActionsProps {
   device: Device | null;
   onUpdateDevice?: (id: string, updates: any) => Promise<any>;
+  onDeleteDevice?: (id: string) => Promise<any>;
 }
 
-export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
+export function DeviceActions({ device, onUpdateDevice, onDeleteDevice }: DeviceActionsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -64,6 +65,18 @@ export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
 
   const handleMessage = () => {
     toast.info('Send Message', { description: 'This feature is coming soon' });
+  };
+
+  const handleDelete = async () => {
+    if (!onDeleteDevice) return;
+    const confirmed = window.confirm(`Are you sure you want to remove "${device.name}"?`);
+    if (!confirmed) return;
+    const error = await onDeleteDevice(device.id);
+    if (!error) {
+      toast.success(`${device.name} removed`);
+    } else {
+      toast.error('Failed to remove device');
+    }
   };
 
   const handleToggleLostMode = async () => {
@@ -119,8 +132,8 @@ export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
     { icon: isRinging ? Bell : Volume2, label: 'Ring', onClick: handleRing, active: isRinging, activeClass: 'bg-primary/15 border-primary/40 text-primary' },
     { icon: MapPin, label: 'Locate', onClick: handleLocate },
     { icon: Lock, label: 'Lock', onClick: handleLock },
-    { icon: MessageSquare, label: 'Message', onClick: handleMessage },
     { icon: Camera, label: 'Photo', onClick: handleCapturePhoto },
+    { icon: Trash2, label: 'Remove', onClick: handleDelete, activeClass: '' },
   ];
 
   return (
