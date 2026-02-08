@@ -25,6 +25,7 @@ export type Database = {
           lat: number
           lng: number
           name: string
+          photo_url: string | null
           status: string
           type: string
           updated_at: string
@@ -40,6 +41,7 @@ export type Database = {
           lat: number
           lng: number
           name: string
+          photo_url?: string | null
           status?: string
           type: string
           updated_at?: string
@@ -55,6 +57,7 @@ export type Database = {
           lat?: number
           lng?: number
           name?: string
+          photo_url?: string | null
           status?: string
           type?: string
           updated_at?: string

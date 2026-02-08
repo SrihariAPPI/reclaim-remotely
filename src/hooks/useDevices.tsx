@@ -15,6 +15,7 @@ type DeviceRow = {
   lng: number;
   address: string | null;
   is_ringing: boolean;
+  photo_url: string | null;
 };
 
 function rowToDevice(row: DeviceRow): Device {
@@ -27,6 +28,7 @@ function rowToDevice(row: DeviceRow): Device {
     lastSeen: new Date(row.last_seen),
     location: { lat: row.lat, lng: row.lng, address: row.address ?? undefined },
     isRinging: row.is_ringing,
+    photoUrl: row.photo_url ?? undefined,
   };
 }
 
@@ -75,7 +77,7 @@ export function useDevices() {
     return error;
   };
 
-  const updateDevice = async (id: string, updates: Partial<{ status: string; is_ringing: boolean; lat: number; lng: number; address: string }>) => {
+  const updateDevice = async (id: string, updates: Partial<{ status: string; is_ringing: boolean; lat: number; lng: number; address: string; photo_url: string }>) => {
     const { error } = await supabase.from('devices').update(updates).eq('id', id);
     if (!error) fetchDevices();
     return error;

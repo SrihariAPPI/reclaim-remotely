@@ -20,6 +20,7 @@ interface DeviceMapProps {
   devices: Device[];
   selectedDevice: Device | null;
   onSelectDevice: (device: Device) => void;
+  userLocation?: { lat: number; lng: number } | null;
 }
 
 function createCustomIcon(device: Device, isSelected: boolean): L.DivIcon {
@@ -86,10 +87,12 @@ export function DeviceMap({
   devices,
   selectedDevice,
   onSelectDevice,
+  userLocation,
 }: DeviceMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
+  const userMarkerRef = useRef<L.Marker | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -163,6 +166,40 @@ export function DeviceMap({
       duration: 1,
     });
   }, [selectedDevice]);
+
+  // User location marker
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
+    }
+
+    if (userLocation) {
+      const userIcon = L.divIcon({
+        className: 'user-location-marker',
+        html: `
+          <div style="position:relative;width:24px;height:24px;display:flex;align-items:center;justify-content:center;">
+            <div style="position:absolute;inset:0;border-radius:50%;background:hsl(174,72%,50%);opacity:0.3;animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></div>
+            <div style="width:14px;height:14px;border-radius:50%;background:hsl(174,72%,50%);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>
+          </div>
+        `,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+      });
+
+      userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
+        .addTo(map)
+        .bindPopup('<div style="color:#f8fafc;font-size:12px;"><strong>Your Location</strong></div>');
+
+      // If no selected device, center on user
+      if (!selectedDevice) {
+        map.flyTo([userLocation.lat, userLocation.lng], 14, { duration: 1 });
+      }
+    }
+  }, [userLocation, selectedDevice]);
 
   return (
     <div className="w-full h-full rounded-xl overflow-hidden device-map-container">
