@@ -19,7 +19,7 @@ interface DeviceActionsProps {
 }
 
 export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showCamera, setShowCamera] = useState(false);
@@ -27,7 +27,7 @@ export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
 
   if (!device) {
     return (
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+      <div className="absolute bottom-[140px] left-1/2 -translate-x-1/2 z-[450]">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -126,7 +126,7 @@ export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
       layout
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-lg px-4 z-[500]"
+      className="absolute bottom-[140px] left-1/2 -translate-x-1/2 w-full max-w-lg px-4 z-[450]"
     >
       <div className={cn(
         'glass-card rounded-2xl overflow-hidden',
@@ -164,7 +164,7 @@ export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: 'easeInOut' }}
             >
-              <div className="px-4 pb-4">
+              <div className="px-4 pb-4 max-h-[40vh] overflow-y-auto">
                 {/* Gradient divider */}
                 <div className="h-px bg-gradient-to-r from-transparent via-border/60 to-transparent mb-3" />
 
