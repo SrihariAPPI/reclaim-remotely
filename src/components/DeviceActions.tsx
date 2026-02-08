@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Device } from '@/types/device';
 import { Switch } from '@/components/ui/switch';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { BatteryIndicator } from './BatteryIndicator';
 import { StatusBadge } from './StatusBadge';
 import { DeviceIcon } from './DeviceIcon';
@@ -25,6 +26,7 @@ export function DeviceActions({ device, onUpdateDevice, onDeleteDevice }: Device
   const [isRinging, setIsRinging] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [capturing, setCapturing] = useState(false);
 
   if (!device) {
@@ -67,16 +69,20 @@ export function DeviceActions({ device, onUpdateDevice, onDeleteDevice }: Device
     toast.info('Send Message', { description: 'This feature is coming soon' });
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!onDeleteDevice) return;
-    const confirmed = window.confirm(`Are you sure you want to remove "${device.name}"?`);
-    if (!confirmed) return;
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!onDeleteDevice) return;
     const error = await onDeleteDevice(device.id);
     if (!error) {
       toast.success(`${device.name} removed`);
     } else {
       toast.error('Failed to remove device');
     }
+    setShowDeleteDialog(false);
   };
 
   const handleToggleLostMode = async () => {
@@ -137,6 +143,7 @@ export function DeviceActions({ device, onUpdateDevice, onDeleteDevice }: Device
   ];
 
   return (
+    <>
     <motion.div
       layout
       initial={{ y: 100, opacity: 0 }}
@@ -264,5 +271,23 @@ export function DeviceActions({ device, onUpdateDevice, onDeleteDevice }: Device
         </AnimatePresence>
       </motion.div>
     </motion.div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="glass-card border-border/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {device.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the device from your account. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
