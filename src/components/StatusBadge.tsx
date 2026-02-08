@@ -7,22 +7,39 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
-  const sizeClasses = size === 'sm' ? 'h-2 w-2' : 'h-2.5 w-2.5';
-  
+  const dotSize = size === 'sm' ? 'h-1.5 w-1.5' : 'h-2 w-2';
+
   return (
-    <div className="flex items-center gap-1.5">
-      <span
-        className={cn(
-          'rounded-full',
-          sizeClasses,
-          status === 'online' && 'bg-success animate-pulse-glow',
-          status === 'offline' && 'bg-muted-foreground',
-          status === 'lost' && 'bg-destructive animate-pulse'
+    <div className={cn(
+      'flex items-center gap-1.5 px-2 py-0.5 rounded-full',
+      status === 'online' && 'bg-success/10',
+      status === 'offline' && 'bg-muted/50',
+      status === 'lost' && 'bg-destructive/10',
+    )}>
+      <span className="relative flex">
+        <span
+          className={cn(
+            'rounded-full',
+            dotSize,
+            status === 'online' && 'bg-success',
+            status === 'offline' && 'bg-muted-foreground/60',
+            status === 'lost' && 'bg-destructive'
+          )}
+        />
+        {(status === 'online' || status === 'lost') && (
+          <span
+            className={cn(
+              'absolute inset-0 rounded-full animate-ping opacity-50',
+              status === 'online' && 'bg-success',
+              status === 'lost' && 'bg-destructive'
+            )}
+          />
         )}
-      />
+      </span>
       <span
         className={cn(
-          'text-xs font-medium capitalize',
+          'font-semibold capitalize',
+          size === 'sm' ? 'text-[10px]' : 'text-xs',
           status === 'online' && 'text-success',
           status === 'offline' && 'text-muted-foreground',
           status === 'lost' && 'text-destructive'
