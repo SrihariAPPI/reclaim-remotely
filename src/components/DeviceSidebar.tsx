@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Shield, LogOut, Wifi, AlertTriangle, Smartphone, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Shield, LogOut, Wifi, AlertTriangle, Smartphone, ChevronLeft, ChevronRight, Sun, Moon } from 'lucide-react';
 import { Device } from '@/types/device';
 import { DeviceCard } from './DeviceCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AddDeviceDialog } from './AddDeviceDialog';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/utils';
 
 interface DeviceSidebarProps {
@@ -27,6 +28,7 @@ export function DeviceSidebar({
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsed, setCollapsed] = useState(false);
   const { signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const filteredDevices = devices.filter((device) =>
     device.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -75,9 +77,14 @@ export function DeviceSidebar({
                     <p className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">Secure Tracker</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={signOut} title="Sign Out" className="rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors">
-                  <LogOut className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" onClick={toggleTheme} title="Toggle theme" className="rounded-xl hover:bg-muted/50 transition-colors h-8 w-8">
+                    {theme === 'dark' ? <Sun className="h-3.5 w-3.5 text-warning" /> : <Moon className="h-3.5 w-3.5 text-primary" />}
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={signOut} title="Sign Out" className="rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors h-8 w-8">
+                    <LogOut className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
 
               <div className="relative glow-ring rounded-xl">
