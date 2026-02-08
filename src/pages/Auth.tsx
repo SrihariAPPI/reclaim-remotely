@@ -4,11 +4,13 @@ import { Shield, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
 
 export default function Auth() {
   const { user, loading, signIn, signUp } = useAuth();
+  usePermissions(); // Request location & camera on app open
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
