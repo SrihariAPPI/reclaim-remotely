@@ -16,11 +16,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+type MapLayer = 'satellite' | 'street';
+
 interface DeviceMapProps {
   devices: Device[];
   selectedDevice: Device | null;
   onSelectDevice: (device: Device) => void;
   userLocation?: { lat: number; lng: number } | null;
+  layer?: MapLayer;
 }
 
 function createCustomIcon(device: Device, isSelected: boolean): L.DivIcon {
@@ -88,11 +91,13 @@ export function DeviceMap({
   selectedDevice,
   onSelectDevice,
   userLocation,
+  layer = 'satellite',
 }: DeviceMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const userMarkerRef = useRef<L.Marker | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -106,7 +111,7 @@ export function DeviceMap({
       zoomControl: true,
     });
 
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    tileLayerRef.current = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       attribution: '&copy; Esri',
     }).addTo(mapInstanceRef.current);
 
@@ -117,6 +122,21 @@ export function DeviceMap({
       }
     };
   }, []);
+
+  // Switch tile layer
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !tileLayerRef.current) return;
+
+    tileLayerRef.current.remove();
+
+    const url = layer === 'satellite'
+      ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+      : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+    const attribution = layer === 'satellite' ? '&copy; Esri' : '&copy; CartoDB';
+
+    tileLayerRef.current = L.tileLayer(url, { attribution }).addTo(map);
+  }, [layer]);
 
   // Update markers when devices change
   useEffect(() => {
