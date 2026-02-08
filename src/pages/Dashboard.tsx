@@ -7,8 +7,10 @@ import { DeviceActions } from '@/components/DeviceActions';
 import { useDevices } from '@/hooks/useDevices';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { useLostModeTracking } from '@/hooks/useLostModeTracking';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export function Dashboard() {
+  const permissions = usePermissions(); // triggers native permission dialogs on mobile
   const { devices, loading, addDevice, updateDevice, deleteDevice } = useDevices();
   const { location: userLocation } = useUserLocation();
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
