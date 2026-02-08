@@ -10,6 +10,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { SplashScreen } from "@/components/SplashScreen";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -76,6 +77,7 @@ function AnimatedRoutes() {
       >
         <Routes location={location}>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>

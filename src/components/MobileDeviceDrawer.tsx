@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
-import { Search, Shield, LogOut, ChevronUp, ChevronDown, Sun, Moon, Wifi, Smartphone, AlertTriangle } from 'lucide-react';
+import { Search, Shield, ChevronUp, ChevronDown, Sun, Moon, Wifi, Smartphone, AlertTriangle, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Device } from '@/types/device';
 import { DeviceCard } from './DeviceCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AddDeviceDialog } from './AddDeviceDialog';
-import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/utils';
 
@@ -27,8 +27,8 @@ export function MobileDeviceDrawer({
 }: MobileDeviceDrawerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [expanded, setExpanded] = useState(false);
-  const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
 
   const filteredDevices = devices.filter((device) =>
     device.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -78,8 +78,8 @@ export function MobileDeviceDrawer({
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-xl h-8 w-8">
               {theme === 'dark' ? <Sun className="h-3.5 w-3.5 text-warning" /> : <Moon className="h-3.5 w-3.5 text-primary" />}
             </Button>
-            <Button variant="ghost" size="icon" onClick={signOut} className="rounded-xl h-8 w-8 hover:bg-destructive/10 hover:text-destructive">
-              <LogOut className="h-3.5 w-3.5" />
+            <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="rounded-xl h-8 w-8">
+              <Settings className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
