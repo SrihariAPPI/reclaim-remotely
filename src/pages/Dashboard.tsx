@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Crosshair, Wifi } from 'lucide-react';
+import { PermissionsIndicator } from '@/components/PermissionsIndicator';
 import { Device } from '@/types/device';
 import { DeviceSidebar } from '@/components/DeviceSidebar';
 import { DeviceMap } from '@/components/DeviceMap';
@@ -78,6 +79,7 @@ export function Dashboard() {
               <span className="text-[10px] text-muted-foreground mono">GPS Active</span>
             </motion.div>
           )}
+          <PermissionsIndicator location={permissions.location} camera={permissions.camera} ready={permissions.ready} />
         </div>
 
         <DeviceActions
