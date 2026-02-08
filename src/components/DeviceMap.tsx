@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
 import L from 'leaflet';
 import { Device } from '@/types/device';
 import 'leaflet/dist/leaflet.css';
@@ -24,6 +24,10 @@ interface DeviceMapProps {
   onSelectDevice: (device: Device) => void;
   userLocation?: { lat: number; lng: number } | null;
   layer?: MapLayer;
+}
+
+export interface DeviceMapHandle {
+  centerOnUser: () => void;
 }
 
 function createCustomIcon(device: Device, isSelected: boolean): L.DivIcon {
@@ -86,18 +90,27 @@ function createCustomIcon(device: Device, isSelected: boolean): L.DivIcon {
   });
 }
 
-export function DeviceMap({
+export const DeviceMap = forwardRef<DeviceMapHandle, DeviceMapProps>(function DeviceMap({
   devices,
   selectedDevice,
   onSelectDevice,
   userLocation,
   layer = 'satellite',
-}: DeviceMapProps) {
+}, ref) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const userMarkerRef = useRef<L.Marker | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    centerOnUser: () => {
+      const map = mapInstanceRef.current;
+      if (map && userLocation) {
+        map.flyTo([userLocation.lat, userLocation.lng], 15, { duration: 1 });
+      }
+    },
+  }), [userLocation]);
 
   // Initialize map
   useEffect(() => {
@@ -226,4 +239,4 @@ export function DeviceMap({
       <div ref={mapRef} className="w-full h-full" />
     </div>
   );
-}
+});
