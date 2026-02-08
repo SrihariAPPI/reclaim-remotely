@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { Search, Shield, LogOut, ChevronUp, ChevronDown, Sun, Moon, Wifi, Smartphone, AlertTriangle } from 'lucide-react';
 import { Device } from '@/types/device';
 import { DeviceCard } from './DeviceCard';
@@ -42,6 +42,15 @@ export function MobileDeviceDrawer({
     setExpanded(false);
   };
 
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    const threshold = 50;
+    if (info.offset.y < -threshold) {
+      setExpanded(true);
+    } else if (info.offset.y > threshold) {
+      setExpanded(false);
+    }
+  };
+
   return (
     <>
       {/* Top bar */}
@@ -77,10 +86,7 @@ export function MobileDeviceDrawer({
       </div>
 
       {/* Bottom drawer */}
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 z-[500]"
-        animate={{ y: 0 }}
-      >
+      <div className="absolute bottom-0 left-0 right-0 z-[500]">
         {/* Backdrop */}
         <AnimatePresence>
           {expanded && (
@@ -94,14 +100,20 @@ export function MobileDeviceDrawer({
           )}
         </AnimatePresence>
 
-        <div className={cn(
-          'relative z-[500] glass-card border-t border-border/30 rounded-t-2xl transition-all duration-300',
-          expanded ? 'max-h-[75vh]' : 'max-h-[auto]'
-        )}>
+        <motion.div
+          className={cn(
+            'relative z-[500] glass-card border-t border-border/30 rounded-t-2xl',
+            expanded ? 'max-h-[75vh]' : 'max-h-[auto]'
+          )}
+          drag="y"
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={0.2}
+          onDragEnd={handleDragEnd}
+        >
           {/* Drag handle & toggle */}
           <button
             onClick={() => setExpanded(!expanded)}
-            className="w-full flex flex-col items-center pt-2 pb-3 px-4"
+            className="w-full flex flex-col items-center pt-2 pb-3 px-4 touch-none"
           >
             <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mb-2" />
             <div className="w-full flex items-center justify-between">
@@ -178,8 +190,8 @@ export function MobileDeviceDrawer({
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </>
   );
 }

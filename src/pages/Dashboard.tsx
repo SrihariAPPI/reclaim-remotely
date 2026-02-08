@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Crosshair, Wifi } from 'lucide-react';
 import { PermissionsIndicator } from '@/components/PermissionsIndicator';
 import { Device } from '@/types/device';
 import { DeviceSidebar } from '@/components/DeviceSidebar';
 import { MobileDeviceDrawer } from '@/components/MobileDeviceDrawer';
-import { DeviceMap } from '@/components/DeviceMap';
+import { DeviceMap, DeviceMapHandle } from '@/components/DeviceMap';
 import { DeviceActions } from '@/components/DeviceActions';
 import { MapLayerToggle } from '@/components/MapLayerToggle';
+import { LocateMeButton } from '@/components/LocateMeButton';
 import { useDevices } from '@/hooks/useDevices';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { useLostModeTracking } from '@/hooks/useLostModeTracking';
@@ -21,6 +22,7 @@ export function Dashboard() {
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [mapLayer, setMapLayer] = useState<'satellite' | 'street'>('satellite');
   const isMobile = useIsMobile();
+  const mapRef = useRef<DeviceMapHandle>(null);
 
   useLostModeTracking(devices, updateDevice);
 
@@ -44,6 +46,7 @@ export function Dashboard() {
 
       <main className="flex-1 relative">
         <DeviceMap
+          ref={mapRef}
           devices={devices}
           selectedDevice={effectiveSelected}
           onSelectDevice={setSelectedDevice}
@@ -93,6 +96,14 @@ export function Dashboard() {
         )}
 
         <MapLayerToggle layer={mapLayer} onToggle={setMapLayer} />
+
+        {/* Locate me button — mobile */}
+        {isMobile && (
+          <LocateMeButton
+            userLocation={userLocation}
+            onLocate={() => mapRef.current?.centerOnUser()}
+          />
+        )}
 
         {/* Device actions — adjusted position on mobile */}
         <div className={isMobile ? 'mb-[120px]' : ''}>
