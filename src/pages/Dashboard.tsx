@@ -6,6 +6,7 @@ import { Device } from '@/types/device';
 import { DeviceSidebar } from '@/components/DeviceSidebar';
 import { DeviceMap } from '@/components/DeviceMap';
 import { DeviceActions } from '@/components/DeviceActions';
+import { MapLayerToggle } from '@/components/MapLayerToggle';
 import { useDevices } from '@/hooks/useDevices';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { useLostModeTracking } from '@/hooks/useLostModeTracking';
@@ -16,6 +17,7 @@ export function Dashboard() {
   const { devices, loading, addDevice, updateDevice, deleteDevice } = useDevices();
   const { location: userLocation } = useUserLocation();
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [mapLayer, setMapLayer] = useState<'satellite' | 'street'>('satellite');
 
   useLostModeTracking(devices, updateDevice);
 
@@ -41,6 +43,7 @@ export function Dashboard() {
           selectedDevice={effectiveSelected}
           onSelectDevice={setSelectedDevice}
           userLocation={userLocation}
+          layer={mapLayer}
         />
 
         {/* Top-right HUD */}
@@ -81,6 +84,8 @@ export function Dashboard() {
           )}
           <PermissionsIndicator location={permissions.location} camera={permissions.camera} ready={permissions.ready} />
         </div>
+
+        <MapLayerToggle layer={mapLayer} onToggle={setMapLayer} />
 
         <DeviceActions
           device={effectiveSelected}
