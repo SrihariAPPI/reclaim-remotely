@@ -11,7 +11,7 @@ export function MapLayerToggle({ layer, onToggle }: MapLayerToggleProps) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="absolute bottom-6 left-4 z-[400] glass-card rounded-xl p-1 flex gap-1"
+      className="absolute bottom-6 left-4 z-[400] glass-card rounded-xl p-1 flex gap-1 max-md:bottom-auto max-md:top-16 max-md:left-3 max-md:z-[450]"
     >
       <button
         onClick={() => onToggle('satellite')}
