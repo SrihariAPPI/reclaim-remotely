@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { SplashScreen } from "@/components/SplashScreen";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -28,6 +31,34 @@ const pageTransition = {
   duration: 0.35,
   ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
 };
+
+function AppWithPermissions() {
+  const permissions = usePermissions();
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    if (permissions.ready) {
+      // Show splash for a brief moment after permissions are resolved
+      const timer = setTimeout(() => setShowSplash(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [permissions.ready]);
+
+  if (showSplash) {
+    return (
+      <motion.div
+        key="splash"
+        initial={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <SplashScreen permissions={permissions} />
+      </motion.div>
+    );
+  }
+
+  return <AnimatedRoutes />;
+}
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -60,7 +91,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AnimatedRoutes />
+          <AppWithPermissions />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
