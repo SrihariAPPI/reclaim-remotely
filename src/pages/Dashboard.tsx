@@ -44,13 +44,10 @@ export function Dashboard() {
           onLocate={() => mapRef.current?.centerOnUser()}
         />
 
-        {/* Device actions */}
-        <div className="mb-[120px]">
-          <DeviceActions
-            device={effectiveSelected}
-            onUpdateDevice={updateDevice}
-          />
-        </div>
+        <DeviceActions
+          device={effectiveSelected}
+          onUpdateDevice={updateDevice}
+        />
 
         {/* Mobile drawer with header */}
         <MobileDeviceDrawer
