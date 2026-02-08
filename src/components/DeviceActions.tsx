@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { playBeep } from '@/lib/sounds';
 
 interface DeviceActionsProps {
   device: Device | null;
@@ -43,6 +44,7 @@ export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
 
   const handleRing = async () => {
     setIsRinging(true);
+    playBeep();
     if (onUpdateDevice) await onUpdateDevice(device.id, { is_ringing: true });
     toast.success(`Playing sound on ${device.name}`, { description: 'The device will ring for 30 seconds' });
     setTimeout(async () => {
