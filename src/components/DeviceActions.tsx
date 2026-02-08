@@ -1,16 +1,18 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Volume2, MapPin, Lock, MessageSquare, ChevronUp, Bell, Navigation,
+  Volume2, MapPin, Lock, MessageSquare, ChevronUp, Bell, Navigation, Camera, ShieldAlert, ShieldCheck,
 } from 'lucide-react';
 import { Device } from '@/types/device';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { BatteryIndicator } from './BatteryIndicator';
 import { StatusBadge } from './StatusBadge';
 import { DeviceIcon } from './DeviceIcon';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DeviceActionsProps {
   device: Device | null;
@@ -20,6 +22,9 @@ interface DeviceActionsProps {
 export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isRinging, setIsRinging] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const [capturing, setCapturing] = useState(false);
 
   if (!device) {
     return (
@@ -56,6 +61,57 @@ export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
 
   const handleMessage = () => {
     toast.info('Send Message', { description: 'This feature is coming soon' });
+  };
+
+  const handleToggleLostMode = async () => {
+    if (!onUpdateDevice) return;
+    const newStatus = device.status === 'lost' ? 'online' : 'lost';
+    await onUpdateDevice(device.id, { status: newStatus });
+    if (newStatus === 'lost') {
+      toast.warning(`${device.name} marked as LOST`, { description: 'Location tracking activated every 60 seconds' });
+    } else {
+      toast.success(`${device.name} recovered!`, { description: 'Lost mode deactivated' });
+    }
+  };
+
+  const handleCapturePhoto = async () => {
+    try {
+      setShowCamera(true);
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      // Wait a moment then capture
+      setTimeout(async () => {
+        setCapturing(true);
+        const canvas = document.createElement('canvas');
+        if (videoRef.current) {
+          canvas.width = videoRef.current.videoWidth;
+          canvas.height = videoRef.current.videoHeight;
+          canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
+        }
+        stream.getTracks().forEach(t => t.stop());
+
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          const fileName = `${device.id}/${Date.now()}.jpg`;
+          const { error } = await supabase.storage.from('device-photos').upload(fileName, blob, { contentType: 'image/jpeg' });
+          if (!error) {
+            const { data: urlData } = supabase.storage.from('device-photos').getPublicUrl(fileName);
+            if (onUpdateDevice) await onUpdateDevice(device.id, { photo_url: urlData.publicUrl });
+            toast.success('Photo captured & uploaded');
+          } else {
+            toast.error('Failed to upload photo');
+          }
+          setShowCamera(false);
+          setCapturing(false);
+        }, 'image/jpeg', 0.8);
+      }, 1500);
+    } catch {
+      toast.error('Camera access denied');
+      setShowCamera(false);
+    }
   };
 
   return (
@@ -100,7 +156,16 @@ export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
                   <span className="text-muted-foreground">{device.location.address || 'Location not available'}</span>
                 </div>
 
-                <div className="grid grid-cols-4 gap-2">
+                {/* Lost Mode Toggle */}
+                <div className="flex items-center justify-between py-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    {device.status === 'lost' ? <ShieldAlert className="h-4 w-4 text-destructive" /> : <ShieldCheck className="h-4 w-4 text-success" />}
+                    <span className="text-sm font-medium">Lost Mode</span>
+                  </div>
+                  <Switch checked={device.status === 'lost'} onCheckedChange={handleToggleLostMode} />
+                </div>
+
+                <div className="grid grid-cols-5 gap-2">
                   <Button variant="outline" className={cn('flex-col gap-1 h-auto py-3', isRinging && 'bg-primary/20 border-primary animate-pulse')} onClick={handleRing}>
                     {isRinging ? <Bell className="h-5 w-5 text-primary animate-bounce" /> : <Volume2 className="h-5 w-5" />}
                     <span className="text-xs">Ring</span>
@@ -117,7 +182,27 @@ export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
                     <MessageSquare className="h-5 w-5" />
                     <span className="text-xs">Message</span>
                   </Button>
+                  <Button variant="outline" className="flex-col gap-1 h-auto py-3" onClick={handleCapturePhoto}>
+                    <Camera className="h-5 w-5" />
+                    <span className="text-xs">Photo</span>
+                  </Button>
                 </div>
+
+                {/* Camera Preview */}
+                {showCamera && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-3 rounded-lg overflow-hidden border border-border/50">
+                    <video ref={videoRef} className="w-full rounded-lg" muted playsInline />
+                    {capturing && <p className="text-xs text-center py-1 text-muted-foreground">Capturing...</p>}
+                  </motion.div>
+                )}
+
+                {/* Captured Photo */}
+                {device.photoUrl && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3">
+                    <p className="text-xs text-muted-foreground mb-1">Last captured photo:</p>
+                    <img src={device.photoUrl} alt="Captured" className="w-full rounded-lg border border-border/50" />
+                  </motion.div>
+                )}
 
                 {device.status === 'lost' && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
@@ -125,7 +210,7 @@ export function DeviceActions({ device, onUpdateDevice }: DeviceActionsProps) {
                       <Bell className="h-4 w-4 text-destructive" />
                       <span className="text-sm font-medium text-destructive">Lost Mode Active</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">This device is marked as lost. Location updates are being sent every 60 seconds.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Location updates every 60s. Capture a photo to identify the finder.</p>
                   </motion.div>
                 )}
               </div>

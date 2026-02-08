@@ -11,6 +11,7 @@ export interface Device {
     address?: string;
   };
   isRinging?: boolean;
+  photoUrl?: string;
 }
 
 export interface DeviceAction {

@@ -5,10 +5,16 @@ import { DeviceSidebar } from '@/components/DeviceSidebar';
 import { DeviceMap } from '@/components/DeviceMap';
 import { DeviceActions } from '@/components/DeviceActions';
 import { useDevices } from '@/hooks/useDevices';
+import { useUserLocation } from '@/hooks/useUserLocation';
+import { useLostModeTracking } from '@/hooks/useLostModeTracking';
 
 export function Dashboard() {
   const { devices, loading, addDevice, updateDevice, deleteDevice } = useDevices();
+  const { location: userLocation } = useUserLocation();
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+
+  // Periodic location tracking for lost devices
+  useLostModeTracking(devices, updateDevice);
 
   // Auto-select first lost device or first device
   const effectiveSelected = selectedDevice && devices.find(d => d.id === selectedDevice.id)
@@ -30,6 +36,7 @@ export function Dashboard() {
           devices={devices}
           selectedDevice={effectiveSelected}
           onSelectDevice={setSelectedDevice}
+          userLocation={userLocation}
         />
 
         <DeviceActions
