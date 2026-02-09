@@ -31,7 +31,7 @@ export function DeviceActions({ device, onUpdateDevice, onDeleteDevice }: Device
 
   if (!device) {
     return (
-      <div className="absolute bottom-[140px] left-1/2 -translate-x-1/2 z-[450]">
+      <div className="absolute bottom-[140px] left-1/2 -translate-x-1/2 z-[510]">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -148,7 +148,7 @@ export function DeviceActions({ device, onUpdateDevice, onDeleteDevice }: Device
       layout
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="absolute bottom-[140px] left-1/2 -translate-x-1/2 w-full max-w-lg px-4 z-[450]"
+      className="absolute bottom-[140px] left-1/2 -translate-x-1/2 w-full max-w-lg px-4 z-[510]"
     >
       <motion.div
         drag="y"
