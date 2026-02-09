@@ -21,9 +21,11 @@ export type Database = {
           created_at: string
           id: string
           is_ringing: boolean
+          is_wiped: boolean
           last_seen: string
           lat: number
           lng: number
+          lost_message: string | null
           name: string
           photo_url: string | null
           status: string
@@ -37,9 +39,11 @@ export type Database = {
           created_at?: string
           id?: string
           is_ringing?: boolean
+          is_wiped?: boolean
           last_seen?: string
           lat: number
           lng: number
+          lost_message?: string | null
           name: string
           photo_url?: string | null
           status?: string
@@ -53,9 +57,11 @@ export type Database = {
           created_at?: string
           id?: string
           is_ringing?: boolean
+          is_wiped?: boolean
           last_seen?: string
           lat?: number
           lng?: number
+          lost_message?: string | null
           name?: string
           photo_url?: string | null
           status?: string

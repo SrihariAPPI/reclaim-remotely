@@ -12,6 +12,7 @@ import { LocateMeButton } from '@/components/LocateMeButton';
 import { useDevices } from '@/hooks/useDevices';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { useLostModeTracking } from '@/hooks/useLostModeTracking';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 
 export function Dashboard() {
   const { devices, loading, addDevice, updateDevice, deleteDevice } = useDevices();
@@ -21,6 +22,7 @@ export function Dashboard() {
   const mapRef = useRef<DeviceMapHandle>(null);
 
   useLostModeTracking(devices, updateDevice);
+  useOfflineSync();
 
   const effectiveSelected = selectedDevice && devices.find(d => d.id === selectedDevice.id)
     ? devices.find(d => d.id === selectedDevice.id)!
