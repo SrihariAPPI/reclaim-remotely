@@ -7,6 +7,7 @@ import { MobileDeviceDrawer } from '@/components/MobileDeviceDrawer';
 import { DeviceMap, DeviceMapHandle } from '@/components/DeviceMap';
 import { DeviceActions } from '@/components/DeviceActions';
 import { MapLayerToggle } from '@/components/MapLayerToggle';
+import { FloatingAddButton } from '@/components/FloatingAddButton';
 import { LocateMeButton } from '@/components/LocateMeButton';
 import { useDevices } from '@/hooks/useDevices';
 import { useUserLocation } from '@/hooks/useUserLocation';
@@ -49,6 +50,9 @@ export function Dashboard() {
           onUpdateDevice={updateDevice}
           onDeleteDevice={deleteDevice}
         />
+
+        {/* Floating Add Device FAB */}
+        <FloatingAddButton onAdd={addDevice} />
 
         {/* Mobile drawer with header */}
         <MobileDeviceDrawer

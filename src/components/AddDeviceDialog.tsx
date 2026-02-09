@@ -8,10 +8,16 @@ import { toast } from 'sonner';
 
 interface AddDeviceDialogProps {
   onAdd: (device: { name: string; type: 'phone' | 'tablet' | 'laptop' | 'watch'; status: 'online'; batteryLevel: number; location: { lat: number; lng: number; address?: string } }) => Promise<any>;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Hide the default trigger button when using external trigger */
+  hideTrigger?: boolean;
 }
 
-export function AddDeviceDialog({ onAdd }: AddDeviceDialogProps) {
-  const [open, setOpen] = useState(false);
+export function AddDeviceDialog({ onAdd, open: controlledOpen, onOpenChange, hideTrigger }: AddDeviceDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [name, setName] = useState('');
   const [type, setType] = useState<'phone' | 'tablet' | 'laptop' | 'watch'>('phone');
   const [submitting, setSubmitting] = useState(false);
@@ -47,12 +53,14 @@ export function AddDeviceDialog({ onAdd }: AddDeviceDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-full gap-2" variant="outline">
-          <Plus className="h-4 w-4" />
-          Add Device
-        </Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button className="w-full gap-2" variant="outline">
+            <Plus className="h-4 w-4" />
+            Add Device
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="glass-card border-border/50">
         <DialogHeader>
           <DialogTitle>Add New Device</DialogTitle>

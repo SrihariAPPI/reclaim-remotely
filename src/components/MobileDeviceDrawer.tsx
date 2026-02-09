@@ -138,12 +138,6 @@ export function MobileDeviceDrawer({
             </div>
           )}
 
-          {/* Always-visible Add Device button */}
-          {!expanded && (
-            <div className="px-4 pb-3">
-              <AddDeviceDialog onAdd={onAddDevice} />
-            </div>
-          )}
 
           {/* Expanded device list */}
           <AnimatePresence>
