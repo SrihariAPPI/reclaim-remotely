@@ -12,10 +12,12 @@ export interface Device {
   };
   isRinging?: boolean;
   photoUrl?: string;
+  lostMessage?: string;
+  isWiped?: boolean;
 }
 
 export interface DeviceAction {
-  type: 'ring' | 'locate' | 'lock' | 'message';
+  type: 'ring' | 'locate' | 'lock' | 'message' | 'wipe';
   deviceId: string;
   payload?: Record<string, unknown>;
 }

@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import {
-  Volume2, MapPin, Lock, MessageSquare, ChevronUp, Bell, Navigation, Camera, ShieldAlert, ShieldCheck, Trash2,
+  Volume2, MapPin, Lock, MessageSquare, ChevronUp, Bell, Navigation, Camera, ShieldAlert, ShieldCheck, Trash2, Ban,
 } from 'lucide-react';
+import { SendMessageDialog } from './SendMessageDialog';
 import { Device } from '@/types/device';
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -27,6 +28,8 @@ export function DeviceActions({ device, onUpdateDevice, onDeleteDevice }: Device
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showCamera, setShowCamera] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showWipeDialog, setShowWipeDialog] = useState(false);
+  const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [capturing, setCapturing] = useState(false);
 
   if (!device) {
@@ -66,7 +69,18 @@ export function DeviceActions({ device, onUpdateDevice, onDeleteDevice }: Device
   };
 
   const handleMessage = () => {
-    toast.info('Send Message', { description: 'This feature is coming soon' });
+    setShowMessageDialog(true);
+  };
+
+  const handleWipe = () => {
+    setShowWipeDialog(true);
+  };
+
+  const confirmWipe = async () => {
+    if (!onUpdateDevice) return;
+    await onUpdateDevice(device.id, { is_wiped: true, status: 'offline' });
+    toast.warning(`${device.name} wiped remotely`, { description: 'All data on the device has been erased' });
+    setShowWipeDialog(false);
   };
 
   const handleDelete = () => {
@@ -138,7 +152,9 @@ export function DeviceActions({ device, onUpdateDevice, onDeleteDevice }: Device
     { icon: isRinging ? Bell : Volume2, label: 'Ring', onClick: handleRing, active: isRinging, activeClass: 'bg-primary/15 border-primary/40 text-primary' },
     { icon: MapPin, label: 'Locate', onClick: handleLocate },
     { icon: Lock, label: 'Lock', onClick: handleLock },
+    { icon: MessageSquare, label: 'Message', onClick: handleMessage },
     { icon: Camera, label: 'Photo', onClick: handleCapturePhoto },
+    { icon: Ban, label: 'Wipe', onClick: handleWipe },
     { icon: Trash2, label: 'Remove', onClick: handleDelete, activeClass: '' },
   ];
 
@@ -216,7 +232,7 @@ export function DeviceActions({ device, onUpdateDevice, onDeleteDevice }: Device
                 </div>
 
                 {/* Action buttons */}
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   {actions.map(({ icon: Icon, label, onClick, active, activeClass }) => (
                     <button
                       key={label}
@@ -288,6 +304,35 @@ export function DeviceActions({ device, onUpdateDevice, onDeleteDevice }: Device
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Remote Wipe Dialog */}
+      <AlertDialog open={showWipeDialog} onOpenChange={setShowWipeDialog}>
+        <AlertDialogContent className="glass-card border-border/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remote Wipe {device.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will erase all data on the device remotely. This action cannot be undone and the device will be locked.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmWipe} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Wipe Device
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Send Message Dialog */}
+      {onUpdateDevice && (
+        <SendMessageDialog
+          open={showMessageDialog}
+          onOpenChange={setShowMessageDialog}
+          deviceName={device.name}
+          deviceId={device.id}
+          onSend={onUpdateDevice}
+        />
+      )}
     </>
   );
 }

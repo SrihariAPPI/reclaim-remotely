@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { Device } from '@/types/device';
+import { savePendingLocation } from '@/lib/offlineLocationStore';
 
 /**
  * Periodically updates location for devices in lost mode (every 60s).
+ * When offline, caches location data to IndexedDB for later sync.
  */
 export function useLostModeTracking(
   devices: Device[],
@@ -24,12 +26,17 @@ export function useLostModeTracking(
       if (!navigator.geolocation) return;
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const timestamp = new Date().toISOString();
+
           for (const device of lostDevices) {
-            await updateDevice(device.id, {
-              lat: pos.coords.latitude,
-              lng: pos.coords.longitude,
-              last_seen: new Date().toISOString(),
-            });
+            if (navigator.onLine) {
+              await updateDevice(device.id, { lat, lng, last_seen: timestamp });
+            } else {
+              // Cache offline for later sync
+              await savePendingLocation({ deviceId: device.id, lat, lng, timestamp });
+            }
           }
         },
         undefined,
@@ -37,7 +44,6 @@ export function useLostModeTracking(
       );
     };
 
-    // Run immediately then every 60s
     trackLocation();
     intervalRef.current = setInterval(trackLocation, 60000);
 

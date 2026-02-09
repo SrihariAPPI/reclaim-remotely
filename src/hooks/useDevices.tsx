@@ -16,6 +16,8 @@ type DeviceRow = {
   address: string | null;
   is_ringing: boolean;
   photo_url: string | null;
+  lost_message: string | null;
+  is_wiped: boolean;
 };
 
 function rowToDevice(row: DeviceRow): Device {
@@ -29,6 +31,8 @@ function rowToDevice(row: DeviceRow): Device {
     location: { lat: row.lat, lng: row.lng, address: row.address ?? undefined },
     isRinging: row.is_ringing,
     photoUrl: row.photo_url ?? undefined,
+    lostMessage: row.lost_message ?? undefined,
+    isWiped: row.is_wiped,
   };
 }
 
