@@ -1,10 +1,13 @@
+import { motion } from 'framer-motion';
+
 interface AppIconProps {
   size?: number;
   className?: string;
+  animate?: boolean;
 }
 
-export function AppIcon({ size = 24, className = '' }: AppIconProps) {
-  return (
+export function AppIcon({ size = 24, className = '', animate = true }: AppIconProps) {
+  const svg = (
     <svg
       width={size}
       height={size}
@@ -33,5 +36,23 @@ export function AppIcon({ size = 24, className = '' }: AppIconProps) {
       <line x1="7" y1="11" x2="8.5" y2="11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
       <line x1="15.5" y1="11" x2="17" y2="11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
+  );
+
+  if (!animate) return svg;
+
+  return (
+    <motion.div
+      className="inline-flex"
+      animate={{
+        filter: [
+          'drop-shadow(0 0 4px hsl(174 72% 50% / 0.2))',
+          'drop-shadow(0 0 12px hsl(174 72% 50% / 0.5))',
+          'drop-shadow(0 0 4px hsl(174 72% 50% / 0.2))',
+        ],
+      }}
+      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      {svg}
+    </motion.div>
   );
 }
