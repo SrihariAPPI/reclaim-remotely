@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { Device } from '@/types/device';
 
 interface DeviceIconProps {
@@ -7,20 +8,25 @@ interface DeviceIconProps {
 
 export function DeviceIcon({ type, className = '' }: DeviceIconProps) {
   return (
-    <svg
+    <motion.svg
       width="24"
       height="24"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      whileHover={{
+        scale: 1.18,
+        filter: 'drop-shadow(0 0 6px hsl(var(--primary) / 0.55))',
+      }}
+      transition={{ type: 'spring', stiffness: 400, damping: 18 }}
     >
       {type === 'phone' && <PhoneSVG />}
       {type === 'laptop' && <LaptopSVG />}
       {type === 'tablet' && <TabletSVG />}
       {type === 'watch' && <WatchSVG />}
       {!['phone', 'laptop', 'tablet', 'watch'].includes(type) && <PhoneSVG />}
-    </svg>
+    </motion.svg>
   );
 }
 
